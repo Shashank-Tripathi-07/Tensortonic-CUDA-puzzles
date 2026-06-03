@@ -1,0 +1,20 @@
+#include <cuda_runtime.h>
+
+__global__ void matrix_transpose_kernel(const float* A, float* B, int M, int N) {
+
+    int i = threadIdx.x + blockIdx.x*blockDim.x; 
+    int j = threadIdx.y + blockIdx.y*blockDim.y; 
+
+    if (i < N && j < M){
+        B[i*M+j] = A[j*N+i]; 
+    }
+
+    
+}
+
+extern "C" void solve(const float* A, float* B, int M, int N) {
+    dim3 threads(16, 16);
+    dim3 blocks((N + 15) / 16, (M + 15) / 16);
+    matrix_transpose_kernel<<<blocks, threads>>>(A, B, M, N);
+    cudaDeviceSynchronize();
+}
